@@ -11,7 +11,6 @@ package com.rameses.osiris3.redis;
 
 import com.rameses.osiris3.cache.BlockingCache;
 import com.rameses.osiris3.cache.CacheConnection;
-import com.rameses.util.Base64Cipher;
 
 import java.util.Map;
 import redis.clients.jedis.Jedis;
@@ -76,21 +75,25 @@ public class RedisCache extends BlockingCache implements CacheConnection  {
         }
     }
     
+    /*
     private Object convertToObject(String data) {
-        Base64Cipher cipher = new Base64Cipher(); 
-        return cipher.decode(data);
+        //Base64Cipher cipher = new Base64Cipher(); 
+        //return cipher.decode(data);
+        return data;
     }
     
     private String convertToString( Object data ) {
-        Base64Cipher cipher = new Base64Cipher(); 
-        return cipher.encode(data);
+        //Base64Cipher cipher = new Base64Cipher(); 
+        //return cipher.encode(data);
+        return data.toString();
     }
+    */
     
     public Object get(String name) {
         Jedis jedis = null;
         try {
             jedis = pool.getResource();
-            return convertToObject(jedis.get(name));
+            return jedis.get(name);
         }
         catch(Exception ex) {
             ex.printStackTrace();
@@ -110,8 +113,11 @@ public class RedisCache extends BlockingCache implements CacheConnection  {
         Jedis jedis = null;
         try {
             jedis = pool.getResource();
-            if(timeout>0) jedis.expire(name, timeout);
-            jedis.set(name, convertToString(data));
+            if(timeout>= 0) jedis.expire(name, timeout);
+            if( data != null ) {
+                data = data.toString();
+            }
+            jedis.set(name, (String)data);
             return data;
         }
         catch(Exception ex) {
@@ -153,6 +159,7 @@ public class RedisCache extends BlockingCache implements CacheConnection  {
         Object value = (conf == null? null: conf.get(name)); 
         return (value == null ? null: value.toString()); 
     }
+    /*
     private Number convertInt( String value ) {
         try {
             return new Integer( value ); 
@@ -160,4 +167,5 @@ public class RedisCache extends BlockingCache implements CacheConnection  {
             return null; 
         }
     }
+    */
 }
